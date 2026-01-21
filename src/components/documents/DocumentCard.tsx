@@ -7,9 +7,9 @@ import { getDocumentDownloadUrl } from "@/hooks/useDocuments";
 import { formatDistanceToNow } from "date-fns";
 
 interface DocumentCardProps {
-  // Using 'doc' to avoid conflict with window.document
   document: Document;
-  onDelete: (document: Document) => void;
+  onDelete?: (document: Document) => void;
+  showActions?: boolean;
 }
 
 function getFileIcon(fileType: string) {
@@ -28,7 +28,7 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 }
 
-export function DocumentCard({ document: doc, onDelete }: DocumentCardProps) {
+export function DocumentCard({ document: doc, onDelete, showActions = true }: DocumentCardProps) {
   const downloadUrl = getDocumentDownloadUrl(doc.file_path);
 
   const handleOpen = () => {
@@ -84,15 +84,17 @@ export function DocumentCard({ document: doc, onDelete }: DocumentCardProps) {
             <Button variant="ghost" size="icon" onClick={handleDownload} title="Download">
               <Download className="h-4 w-4" />
             </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={() => onDelete(doc)} 
-              title="Delete"
-              className="hover:text-destructive"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {showActions && onDelete && (
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => onDelete(doc)} 
+                title="Delete"
+                className="hover:text-destructive"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
