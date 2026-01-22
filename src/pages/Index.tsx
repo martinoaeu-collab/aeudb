@@ -6,6 +6,7 @@ import { SearchBar } from "@/components/documents/SearchBar";
 import { CategoryFilter } from "@/components/documents/CategoryFilter";
 import { DocumentCard } from "@/components/documents/DocumentCard";
 import { UploadDialog } from "@/components/documents/UploadDialog";
+import { BarcodeGenerator } from "@/components/documents/BarcodeGenerator";
 import { CreateCategoryDialog } from "@/components/documents/CreateCategoryDialog";
 import { EmptyState } from "@/components/documents/EmptyState";
 import { Header } from "@/components/layout/Header";
@@ -25,6 +26,8 @@ const Index = () => {
   const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
   const [showBootstrap, setShowBootstrap] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(false);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [currentIdentifier, setCurrentIdentifier] = useState("");
 
   const debouncedSearch = useDebounce(searchQuery, 300);
   
@@ -96,11 +99,24 @@ const Index = () => {
     return <Navigate to="/login" replace />;
   }
 
+  const handleProceedToUpload = (identifier: string) => {
+    setCurrentIdentifier(identifier);
+    setUploadDialogOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Header>
-        {isHrOrAdmin && <UploadDialog categories={categories} />}
+        {isHrOrAdmin && <BarcodeGenerator onProceedToUpload={handleProceedToUpload} />}
       </Header>
+
+      {/* Upload Dialog (controlled externally) */}
+      <UploadDialog 
+        categories={categories} 
+        open={uploadDialogOpen} 
+        onOpenChange={setUploadDialogOpen}
+        identifier={currentIdentifier}
+      />
 
       {/* Bootstrap Admin Alert */}
       {showBootstrap && (

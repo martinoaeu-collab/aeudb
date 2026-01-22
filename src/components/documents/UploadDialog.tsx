@@ -1,22 +1,25 @@
-import { useState, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useState, useCallback, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Upload, FileUp, X } from "lucide-react";
+import { Upload, FileUp, X } from "lucide-react";
 import { Category } from "@/types/document";
 import { useUploadDocument } from "@/hooks/useDocuments";
+import Barcode from "react-barcode";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface UploadDialogProps {
   categories: Category[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  identifier: string;
 }
 
-export function UploadDialog({ categories }: UploadDialogProps) {
-  const [open, setOpen] = useState(false);
+export function UploadDialog({ categories, open, onOpenChange, identifier }: UploadDialogProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [identifier, setIdentifier] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
@@ -65,38 +68,51 @@ export function UploadDialog({ categories }: UploadDialogProps) {
     });
 
     // Reset form
-    setFile(null);
-    setIdentifier("");
-    setTitle("");
-    setDescription("");
-    setCategoryId("");
-    setOpen(false);
+    resetForm();
+    onOpenChange(false);
   };
 
   const resetForm = () => {
     setFile(null);
-    setIdentifier("");
     setTitle("");
     setDescription("");
     setCategoryId("");
   };
 
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      resetForm();
+    }
+  }, [open]);
+
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { setOpen(isOpen); if (!isOpen) resetForm(); }}>
-      <DialogTrigger asChild>
-        <Button className="gap-2 shadow-md hover:shadow-lg transition-shadow">
-          <Plus className="h-4 w-4" />
-          Upload Document
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Upload className="h-5 w-5 text-primary" />
-            Upload New Document
+            Upload Document
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Barcode Display */}
+          <Card className="bg-muted/30">
+            <CardContent className="p-4 flex items-center justify-center">
+              <Barcode 
+                value={identifier}
+                format="CODE128"
+                width={1.5}
+                height={50}
+                displayValue={true}
+                fontSize={14}
+                font="monospace"
+                textMargin={4}
+                margin={5}
+              />
+            </CardContent>
+          </Card>
+
           {/* Drop Zone */}
           <div
             onDragOver={handleDragOver}
@@ -149,33 +165,20 @@ export function UploadDialog({ categories }: UploadDialogProps) {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="identifier">Identifier / Code *</Label>
-              <Input
-                id="identifier"
-                placeholder="e.g., AEU-692"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value.toUpperCase())}
-                required
-                className="font-mono"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select value={categoryId} onValueChange={setCategoryId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -203,7 +206,7 @@ export function UploadDialog({ categories }: UploadDialogProps) {
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={!file || !identifier || !title || uploadMutation.isPending}
+            disabled={!file || !title || uploadMutation.isPending}
           >
             {uploadMutation.isPending ? "Uploading..." : "Upload Document"}
           </Button>

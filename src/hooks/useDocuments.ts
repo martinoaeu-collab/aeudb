@@ -41,6 +41,38 @@ export function useCategories() {
   });
 }
 
+export function useNextIdentifier() {
+  return useQuery({
+    queryKey: ["nextIdentifier"],
+    queryFn: async () => {
+      // Get the latest identifier to determine the next number
+      const { data, error } = await supabase
+        .from("documents")
+        .select("identifier")
+        .ilike("identifier", "AEU-%")
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        return "AEU-001";
+      }
+
+      // Extract the number from the latest identifier
+      const latestId = data[0].identifier;
+      const match = latestId.match(/AEU-(\d+)/);
+      if (match) {
+        const nextNum = parseInt(match[1], 10) + 1;
+        return `AEU-${nextNum.toString().padStart(3, "0")}`;
+      }
+
+      return "AEU-001";
+    },
+    staleTime: 0, // Always refetch to get the latest
+  });
+}
+
 export function useCreateCategory() {
   const queryClient = useQueryClient();
   return useMutation({
