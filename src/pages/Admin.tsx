@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Users, Shield } from "lucide-react";
 import { toast } from "sonner";
+import { CreateUserDialog } from "@/components/admin/CreateUserDialog";
 
 interface UserWithRole {
   user_id: string;
@@ -84,14 +85,17 @@ export default function Admin() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Users className="h-5 w-5 text-primary" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Users className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle>User Management</CardTitle>
+                  <CardDescription>Create accounts and manage user roles</CardDescription>
+                </div>
               </div>
-              <div>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>Manage user roles and permissions</CardDescription>
-              </div>
+              <CreateUserDialog onUserCreated={fetchUsers} />
             </div>
           </CardHeader>
           <CardContent>
