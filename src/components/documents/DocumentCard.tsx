@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Download, Trash2, ExternalLink, FileSpreadsheet, FileImage, File } from "lucide-react";
 import { getDocumentDownloadUrl } from "@/hooks/useDocuments";
 import { formatDistanceToNow } from "date-fns";
+import Barcode from "react-barcode";
 
 interface DocumentCardProps {
   document: Document;
@@ -47,14 +48,23 @@ export function DocumentCard({ document: doc, onDelete, showActions = true }: Do
     <Card className="group hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 bg-card border-border">
       <CardContent className="p-5">
         <div className="flex items-start gap-4">
-          <div className="p-3 rounded-xl bg-muted flex-shrink-0">
-            {getFileIcon(doc.file_type)}
+          {/* Barcode on the left */}
+          <div className="flex-shrink-0 bg-white rounded-lg p-2 border border-border">
+            <Barcode 
+              value={doc.identifier}
+              format="CODE128"
+              width={1}
+              height={40}
+              displayValue={true}
+              fontSize={10}
+              font="monospace"
+              textMargin={2}
+              margin={2}
+            />
           </div>
+          
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="font-mono text-xs font-semibold bg-primary/5 text-primary border-primary/20">
-                {doc.identifier}
-              </Badge>
               {doc.category && (
                 <Badge variant="secondary" className="text-xs">
                   {doc.category.name}
