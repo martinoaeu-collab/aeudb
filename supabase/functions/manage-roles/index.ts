@@ -35,7 +35,9 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
-    const { action, userId, role } = await req.json();
+    // Parse body once
+    const body = await req.json();
+    const { action, userId, role, email, password, fullName } = body;
 
     // Check if requesting user is admin
     const { data: requesterRoles } = await supabaseAdmin
@@ -108,6 +110,36 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ users: usersWithRoles }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (action === "create-user") {
+      if (!email || !password) {
+        throw new Error("Email and password are required");
+      }
+
+      // Create the user using admin API
+      const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: { full_name: fullName || "" },
+      });
+
+      if (createError) throw createError;
+
+      // The trigger will auto-create profile and assign staff role
+      // If a different role is specified, update it
+      if (role && role !== "staff" && newUser.user) {
+        await supabaseAdmin
+          .from("user_roles")
+          .update({ role })
+          .eq("user_id", newUser.user.id);
+      }
+
+      return new Response(
+        JSON.stringify({ success: true, user: { id: newUser.user?.id, email: newUser.user?.email } }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
