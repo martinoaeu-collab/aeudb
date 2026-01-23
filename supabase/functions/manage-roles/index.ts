@@ -144,6 +144,30 @@ serve(async (req) => {
       );
     }
 
+    if (action === "update-email") {
+      if (!userId || !email) {
+        throw new Error("User ID and email are required");
+      }
+
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        email,
+        email_confirm: true,
+      });
+
+      if (updateError) throw updateError;
+
+      // Also update the profile
+      await supabaseAdmin
+        .from("profiles")
+        .update({ email })
+        .eq("user_id", userId);
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     throw new Error("Invalid action");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
