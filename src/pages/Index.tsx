@@ -4,7 +4,7 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { useDocuments, useCategories, useDeleteDocument } from "@/hooks/useDocuments";
 import { SearchBar } from "@/components/documents/SearchBar";
 import { CategoryFilter } from "@/components/documents/CategoryFilter";
-import { DocumentCard } from "@/components/documents/DocumentCard";
+import { DocumentListView } from "@/components/documents/DocumentListView";
 import { UploadDialog } from "@/components/documents/UploadDialog";
 import { BarcodeGenerator } from "@/components/documents/BarcodeGenerator";
 import { CreateCategoryDialog } from "@/components/documents/CreateCategoryDialog";
@@ -171,16 +171,12 @@ const Index = () => {
         ) : documents.length === 0 ? (
           <EmptyState searchQuery={debouncedSearch} />
         ) : (
-          <div className="grid gap-4">
-            {documents.map((document) => (
-              <DocumentCard
-                key={document.id}
-                document={document}
-                onDelete={isHrOrAdmin ? setDocumentToDelete : undefined}
-                showActions={isHrOrAdmin}
-              />
-            ))}
-          </div>
+          <DocumentListView
+            documents={documents}
+            onDelete={isHrOrAdmin ? setDocumentToDelete : undefined}
+            showActions={isHrOrAdmin}
+          />
+        
         )}
       </main>
 
