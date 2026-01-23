@@ -16,6 +16,22 @@ serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
+    const { email, password, fullName, action, userId, newEmail } = await req.json();
+
+    // Allow email update for existing users (one-time fix)
+    if (action === "update-email" && userId && newEmail) {
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        email: newEmail,
+        email_confirm: true,
+      });
+      if (updateError) throw updateError;
+
+      return new Response(
+        JSON.stringify({ success: true, message: "Email updated" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Check if any admin users exist
     const { count } = await supabaseAdmin
       .from("user_roles")
@@ -29,7 +45,12 @@ serve(async (req) => {
       );
     }
 
-    const { email, password, fullName } = await req.json();
+    if (!email || !password) {
+      return new Response(
+        JSON.stringify({ error: "Email and password are required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     if (!email || !password) {
       return new Response(
