@@ -1,4 +1,7 @@
 project_id = "jezvoubtftznjsoxqsnl"
 
+[functions.bootstrap-admin]
+verify_jwt = false
+
 [functions.manage-roles]
 verify_jwt = false
