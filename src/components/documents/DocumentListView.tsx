@@ -49,7 +49,6 @@ export function DocumentListView({ documents, onDelete, showActions = true }: Do
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50 hover:bg-muted/50">
-            <TableHead className="w-[140px]">Barcode</TableHead>
             <TableHead className="w-[50px]">Type</TableHead>
             <TableHead>Name</TableHead>
             <TableHead className="w-[120px]">Category</TableHead>
@@ -61,32 +60,32 @@ export function DocumentListView({ documents, onDelete, showActions = true }: Do
         <TableBody>
           {documents.map((doc) => (
             <TableRow key={doc.id} className="group">
-              <TableCell className="py-2">
-                <div className="bg-white rounded p-1 inline-block border border-border">
-                  <Barcode 
-                    value={doc.identifier}
-                    format="CODE128"
-                    width={1}
-                    height={30}
-                    displayValue={true}
-                    fontSize={8}
-                    font="monospace"
-                    textMargin={1}
-                    margin={1}
-                  />
-                </div>
-              </TableCell>
               <TableCell>
                 {getFileIcon(doc.file_type)}
               </TableCell>
               <TableCell>
-                <div className="flex flex-col">
-                  <span className="font-medium text-foreground truncate max-w-[300px]" title={doc.title}>
-                    {doc.title}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate max-w-[300px]" title={doc.file_name}>
-                    {doc.file_name}
-                  </span>
+                <div className="flex items-center gap-3">
+                  <div className="bg-white rounded p-1 border border-border shrink-0">
+                    <Barcode 
+                      value={doc.identifier}
+                      format="CODE128"
+                      width={1}
+                      height={25}
+                      displayValue={true}
+                      fontSize={8}
+                      font="monospace"
+                      textMargin={1}
+                      margin={1}
+                    />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="font-medium text-foreground truncate" title={doc.title}>
+                      {doc.title}
+                    </span>
+                    <span className="text-xs text-muted-foreground truncate" title={doc.file_name}>
+                      {doc.file_name}
+                    </span>
+                  </div>
                 </div>
               </TableCell>
               <TableCell>
