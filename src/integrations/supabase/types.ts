@@ -85,6 +85,80 @@ export type Database = {
           },
         ]
       }
+      filled_forms: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          filled_data: Json
+          id: string
+          name: string
+          output_pdf_path: string | null
+          template_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          filled_data?: Json
+          id?: string
+          name: string
+          output_pdf_path?: string | null
+          template_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          filled_data?: Json
+          id?: string
+          name?: string
+          output_pdf_path?: string | null
+          template_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "filled_forms_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "pdf_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdf_templates: {
+        Row: {
+          base_pdf_path: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          form_fields: Json
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          base_pdf_path: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          form_fields?: Json
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          base_pdf_path?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          form_fields?: Json
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
