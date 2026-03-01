@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileArchive, Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, Container } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Login() {
@@ -39,19 +39,19 @@ export default function Login() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 rounded-xl bg-primary text-primary-foreground shadow-md">
-              <FileArchive className="h-8 w-8" />
+              <Container className="h-8 w-8" />
             </div>
           </div>
           <CardTitle className="text-2xl">DocVault</CardTitle>
           <CardDescription>Staff-only Document Management System</CardDescription>
         </CardHeader>
         <CardContent>
-          {error && (
-            <Alert variant="destructive" className="mb-4">
+          {error &&
+          <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
-          )}
+          }
           
           <form onSubmit={handleSignIn} className="space-y-4">
             <div className="space-y-2">
@@ -61,8 +61,8 @@ export default function Login() {
                 name="email"
                 type="email"
                 placeholder="you@company.com"
-                required
-              />
+                required />
+
             </div>
             <div className="space-y-2">
               <Label htmlFor="signin-password">Password</Label>
@@ -70,8 +70,8 @@ export default function Login() {
                 id="signin-password"
                 name="password"
                 type="password"
-                required
-              />
+                required />
+
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -80,9 +80,9 @@ export default function Login() {
           </form>
         </CardContent>
         <div className="px-6 pb-6 text-center text-sm text-muted-foreground">
-          <p>Private system. Contact administrator for access.</p>
+          <p>For AEU staff only.</p>
         </div>
       </Card>
-    </div>
-  );
+    </div>);
+
 }
