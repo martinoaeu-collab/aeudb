@@ -161,6 +161,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_code: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -168,6 +169,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          access_code?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -175,6 +177,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          access_code?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
@@ -182,6 +185,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_category_access: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_category_access_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

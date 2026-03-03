@@ -7,7 +7,6 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -15,18 +14,15 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
-    // Create admin client
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-    // Get auth header to identify user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       throw new Error("No authorization header");
     }
 
-    // Create user client to get current user
-    const supabaseUser = createClient(supabaseUrl, Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!, {
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const supabaseUser = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
@@ -35,11 +31,9 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
-    // Parse body once
     const body = await req.json();
-    const { action, userId, role, email, password, fullName } = body;
+    const { action, userId, role, email, password, fullName, accessCode, categoryAccess, allAccess } = body;
 
-    // Check if requesting user is admin
     const { data: requesterRoles } = await supabaseAdmin
       .from("user_roles")
       .select("role")
@@ -47,7 +41,6 @@ serve(async (req) => {
 
     const isAdmin = requesterRoles?.some(r => r.role === "admin");
 
-    // Special case: if no admins exist, allow first user to become admin
     if (action === "bootstrap") {
       const { count } = await supabaseAdmin
         .from("user_roles")
@@ -55,7 +48,6 @@ serve(async (req) => {
         .eq("role", "admin");
 
       if (count === 0) {
-        // No admins exist, make this user admin
         await supabaseAdmin
           .from("user_roles")
           .update({ role: "admin" })
@@ -73,7 +65,6 @@ serve(async (req) => {
       }
     }
 
-    // For all other actions, require admin
     if (!isAdmin) {
       throw new Error("Admin access required");
     }
@@ -93,7 +84,6 @@ serve(async (req) => {
     }
 
     if (action === "list-users") {
-      // Get all profiles with their roles
       const { data: profiles } = await supabaseAdmin
         .from("profiles")
         .select("*")
@@ -129,13 +119,35 @@ serve(async (req) => {
 
       if (createError) throw createError;
 
-      // The trigger will auto-create profile and assign staff role
-      // If a different role is specified, update it
+      // Wait a moment for trigger to create profile, then update access_code
+      if (newUser.user && accessCode) {
+        // Small delay to let trigger fire
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        await supabaseAdmin
+          .from("profiles")
+          .update({ access_code: accessCode })
+          .eq("user_id", newUser.user.id);
+      }
+
+      // Update role if not staff
       if (role && role !== "staff" && newUser.user) {
         await supabaseAdmin
           .from("user_roles")
           .update({ role })
           .eq("user_id", newUser.user.id);
+      }
+
+      // Set category access if not all access
+      if (newUser.user && !allAccess && categoryAccess && categoryAccess.length > 0) {
+        const accessRows = categoryAccess.map((catId: string) => ({
+          user_id: newUser.user!.id,
+          category_id: catId,
+        }));
+
+        await supabaseAdmin
+          .from("user_category_access")
+          .insert(accessRows);
       }
 
       return new Response(
@@ -156,7 +168,6 @@ serve(async (req) => {
 
       if (updateError) throw updateError;
 
-      // Also update the profile
       await supabaseAdmin
         .from("profiles")
         .update({ email })

@@ -4,13 +4,13 @@ import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertCircle, Container } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2, AlertCircle, Shield } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [accessCode, setAccessCode] = useState("");
   const { signIn } = useAuthContext();
   const navigate = useNavigate();
 
@@ -19,15 +19,20 @@ export default function Login() {
     setIsLoading(true);
     setError(null);
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-
     try {
-      await signIn(email, password);
+      // Look up user by access code via edge function
+      const { data, error: fnError } = await supabase.functions.invoke("login-by-code", {
+        body: { accessCode },
+      });
+
+      if (fnError) throw fnError;
+      if (data.error) throw new Error(data.error);
+
+      // Sign in with the resolved email and access code as password
+      await signIn(data.email, accessCode);
       navigate("/");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign in failed");
+      setError(err instanceof Error ? err.message : "Sign in failed. Check your access code.");
     } finally {
       setIsLoading(false);
     }
@@ -35,54 +40,52 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="p-3 rounded-xl bg-primary text-primary-foreground shadow-md">
-              <Container className="h-8 w-8" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl">DocVault</CardTitle>
-          <CardDescription>Staff-only Document Management System</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error &&
-          <Alert variant="destructive" className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          }
-          
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="signin-email">Email</Label>
-              <Input
-                id="signin-email"
-                name="email"
-                type="email"
-                placeholder="you@company.com"
-                required />
-
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="signin-password">Password</Label>
-              <Input
-                id="signin-password"
-                name="password"
-                type="password"
-                required />
-
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign In
-            </Button>
-          </form>
-        </CardContent>
-        <div className="px-6 pb-6 text-center text-sm text-muted-foreground">
-          <p>For AEU staff only.</p>
+      <div className="win-dialog" style={{ width: '380px' }}>
+        <div className="win-titlebar">
+          <Shield className="h-4 w-4" />
+          <span>Aviation Roblox Ministerium AEDB - Login</span>
         </div>
-      </Card>
-    </div>);
+        <div className="p-6 space-y-4">
+          <div className="text-center space-y-2 mb-4">
+            <p className="text-sm text-muted-foreground">
+              Enter your access code to sign in.
+            </p>
+          </div>
 
+          {error && (
+            <div className="flex items-center gap-2 p-2 bg-destructive/10 border border-destructive text-destructive text-xs">
+              <AlertCircle className="h-4 w-4 flex-shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div className="space-y-1">
+              <Label htmlFor="access-code" className="text-xs font-semibold">Access Code:</Label>
+              <Input
+                id="access-code"
+                type="password"
+                value={accessCode}
+                onChange={(e) => setAccessCode(e.target.value)}
+                placeholder="Enter your code"
+                required
+                className="h-8 text-sm"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <Button type="submit" className="win-button h-7 text-xs px-6" disabled={isLoading || !accessCode}>
+                {isLoading && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+                OK
+              </Button>
+            </div>
+          </form>
+
+          <div className="text-center text-xs text-muted-foreground pt-2">
+            <p>For AEU staff only. Contact admin for access.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

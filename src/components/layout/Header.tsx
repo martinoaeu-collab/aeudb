@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FileArchive, LogOut, User, Shield, Settings, FileText } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { LogOut, Menu, Shield, Settings, FileText, Files } from "lucide-react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -20,100 +21,70 @@ export function Header({ children }: HeaderProps) {
     navigate("/login");
   };
 
-  const getRoleBadgeVariant = () => {
-    switch (role) {
-      case "admin":
-        return "destructive";
-      case "hr":
-        return "default";
-      default:
-        return "secondary";
-    }
-  };
-
   const navItems = [
-    { path: "/", label: "Documents" },
-    { path: "/templates", label: "PDF Templates" },
+    { path: "/", label: "Documents", icon: Files },
+    { path: "/templates", label: "PDF Templates", icon: FileText },
   ];
 
   return (
-    <header className="sticky top-0 z-10 bg-card/80 backdrop-blur-md border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-primary text-primary-foreground shadow-md">
-                <FileArchive className="h-6 w-6" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">DocVault</h1>
-                <p className="text-sm text-muted-foreground">Document Management System</p>
-              </div>
-            </Link>
-            
-            <nav className="hidden md:flex items-center gap-1 ml-4">
+    <header className="win-titlebar" style={{ padding: '4px 8px', fontSize: '13px' }}>
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-3">
+          {/* Hamburger Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="text-primary-foreground hover:bg-primary/20 p-1" style={{ background: 'transparent', border: 'none' }}>
+                <Menu className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56 win-dialog" style={{ borderRadius: 0 }}>
               {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path))
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
-                  )}
-                >
-                  {item.label}
-                </Link>
+                <DropdownMenuItem key={item.path} asChild>
+                  <Link
+                    to={item.path}
+                    className={cn(
+                      "flex items-center gap-2 w-full",
+                      (location.pathname === item.path || (item.path !== "/" && location.pathname.startsWith(item.path)))
+                        ? "font-bold"
+                        : ""
+                    )}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
               ))}
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {children}
-            
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <User className="h-4 w-4" />
-                  <span className="hidden sm:inline max-w-32 truncate">{user?.email}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Your Role
-                  <Badge variant={getRoleBadgeVariant()} className="ml-auto capitalize">
-                    {role || "loading..."}
-                  </Badge>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <div className="md:hidden">
-                  {navItems.map((item) => (
-                    <DropdownMenuItem key={item.path} asChild>
-                      <Link to={item.path}>
-                        <FileText className="h-4 w-4 mr-2" />
-                        {item.label}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
+              {role === "admin" && (
+                <>
                   <DropdownMenuSeparator />
-                </div>
-                {role === "admin" && (
                   <DropdownMenuItem asChild>
-                    <Link to="/admin">
-                      <Settings className="h-4 w-4 mr-2" />
+                    <Link to="/admin" className="flex items-center gap-2 w-full">
+                      <Settings className="h-4 w-4" />
                       User Management
                     </Link>
                   </DropdownMenuItem>
-                )}
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                </>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Logo / Title */}
+          <Link to="/" className="flex items-center gap-2 text-primary-foreground no-underline">
+            <Shield className="h-5 w-5" />
+            <span className="font-bold text-sm">Aviation Roblox Ministerium AEDB</span>
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {children}
+          <span className="text-primary-foreground text-xs opacity-80">
+            {user?.email} [{role || "..."}]
+          </span>
         </div>
       </div>
     </header>
