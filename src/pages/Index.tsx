@@ -13,7 +13,6 @@ import { Header } from "@/components/layout/Header";
 import { Document } from "@/types/document";
 import { Loader2, Crown } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
@@ -28,14 +27,32 @@ const Index = () => {
   const [bootstrapping, setBootstrapping] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [currentIdentifier, setCurrentIdentifier] = useState("");
+  const [allowedCategoryIds, setAllowedCategoryIds] = useState<string[] | null>(null);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
-  
+
   const { data: documents = [], isLoading: documentsLoading } = useDocuments(debouncedSearch, selectedCategory);
   const { data: categories = [] } = useCategories();
   const deleteMutation = useDeleteDocument();
 
-  // Check if bootstrap is available (no admin exists)
+  // Fetch user's allowed categories
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from("user_category_access")
+        .select("category_id")
+        .eq("user_id", user.id)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            setAllowedCategoryIds(data.map(d => d.category_id));
+          } else {
+            // No restrictions = all access
+            setAllowedCategoryIds(null);
+          }
+        });
+    }
+  }, [user]);
+
   useEffect(() => {
     if (user && role === "staff") {
       supabase
@@ -43,9 +60,7 @@ const Index = () => {
         .select("*", { count: "exact", head: true })
         .eq("role", "admin")
         .then(({ count }) => {
-          if (count === 0) {
-            setShowBootstrap(true);
-          }
+          if (count === 0) setShowBootstrap(true);
         });
     }
   }, [user, role]);
@@ -81,12 +96,25 @@ const Index = () => {
     setDocumentToDelete(null);
   };
 
-  const stats = useMemo(() => ({
-    total: documents.length,
-    categories: categories.length,
-  }), [documents.length, categories.length]);
+  // Filter documents by allowed categories
+  const filteredDocuments = useMemo(() => {
+    if (!allowedCategoryIds) return documents; // null = all access
+    return documents.filter(doc =>
+      doc.category_id && allowedCategoryIds.includes(doc.category_id)
+    );
+  }, [documents, allowedCategoryIds]);
 
-  // Redirect to login if not authenticated
+  // Filter categories by allowed
+  const filteredCategories = useMemo(() => {
+    if (!allowedCategoryIds) return categories;
+    return categories.filter(cat => allowedCategoryIds.includes(cat.id));
+  }, [categories, allowedCategoryIds]);
+
+  const stats = useMemo(() => ({
+    total: filteredDocuments.length,
+    categories: filteredCategories.length,
+  }), [filteredDocuments.length, filteredCategories.length]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -95,9 +123,7 @@ const Index = () => {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   const handleProceedToUpload = (identifier: string) => {
     setCurrentIdentifier(identifier);
@@ -110,92 +136,73 @@ const Index = () => {
         {isHrOrAdmin && <BarcodeGenerator onProceedToUpload={handleProceedToUpload} />}
       </Header>
 
-      {/* Upload Dialog (controlled externally) */}
-      <UploadDialog 
-        categories={categories} 
-        open={uploadDialogOpen} 
+      <UploadDialog
+        categories={categories}
+        open={uploadDialogOpen}
         onOpenChange={setUploadDialogOpen}
         identifier={currentIdentifier}
       />
 
-      {/* Bootstrap Admin Alert */}
       {showBootstrap && (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-          <Alert className="bg-warning/10 border-warning">
+        <div className="max-w-7xl mx-auto px-4 pt-2">
+          <div className="flex items-center gap-2 p-2 bg-warning/10 border border-warning text-xs">
             <Crown className="h-4 w-4 text-warning" />
-            <AlertDescription className="flex items-center justify-between">
-              <span>No admin exists yet. As the first user, you can become the admin.</span>
-              <Button 
-                size="sm" 
-                onClick={handleBootstrap}
-                disabled={bootstrapping}
-                className="ml-4"
-              >
-                {bootstrapping ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                Become Admin
-              </Button>
-            </AlertDescription>
-          </Alert>
+            <span>No admin exists yet. As the first user, you can become the admin.</span>
+            <Button size="sm" onClick={handleBootstrap} disabled={bootstrapping} className="win-button h-6 text-xs ml-auto">
+              {bootstrapping ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+              Become Admin
+            </Button>
+          </div>
         </div>
       )}
 
-      {/* Search Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 border-b border-border bg-card/50">
-        <div className="flex flex-col sm:flex-row gap-4">
+      {/* Search bar */}
+      <div className="max-w-7xl mx-auto px-4 py-2 border-b border-border bg-card">
+        <div className="flex items-center gap-4">
           <SearchBar value={searchQuery} onChange={setSearchQuery} />
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="font-medium">{stats.total} documents</span>
-            <span>•</span>
-            <span>{stats.categories} categories</span>
-          </div>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {stats.total} documents | {stats.categories} categories
+          </span>
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Category Filter */}
-        <div className="flex items-center justify-between gap-4 mb-6">
+      <main className="max-w-7xl mx-auto px-4 py-3">
+        <div className="flex items-center justify-between gap-4 mb-3">
           <CategoryFilter
-            categories={categories}
+            categories={filteredCategories}
             selectedCategory={selectedCategory}
             onSelectCategory={setSelectedCategory}
           />
           {isHrOrAdmin && <CreateCategoryDialog />}
         </div>
 
-        {/* Documents List */}
         {documentsLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : documents.length === 0 ? (
+        ) : filteredDocuments.length === 0 ? (
           <EmptyState searchQuery={debouncedSearch} />
         ) : (
           <DocumentListView
-            documents={documents}
+            documents={filteredDocuments}
             onDelete={isHrOrAdmin ? setDocumentToDelete : undefined}
             showActions={isHrOrAdmin}
           />
-        
         )}
       </main>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!documentToDelete} onOpenChange={() => setDocumentToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="win-dialog" style={{ borderRadius: 0 }}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Document</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-sm">Delete Document</AlertDialogTitle>
+            <AlertDialogDescription className="text-xs">
               Are you sure you want to delete "{documentToDelete?.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
+            <AlertDialogCancel className="win-button h-7 text-xs">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="win-button h-7 text-xs">
+              OK
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
