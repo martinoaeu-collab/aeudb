@@ -107,12 +107,12 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
           Create User
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg win-dialog p-0" style={{ borderRadius: 0 }}>
-        <div className="win-titlebar">
+      <DialogContent className="sm:max-w-lg win-dialog p-0 max-h-[90vh] flex flex-col" style={{ borderRadius: 0 }}>
+        <div className="win-titlebar flex-shrink-0">
           <UserPlus className="h-4 w-4" />
           <span>Create New User Account</span>
         </div>
-        <form onSubmit={handleSubmit} className="p-4 space-y-3">
+        <form onSubmit={handleSubmit} className="p-4 space-y-3 overflow-y-auto flex-1">
           {/* Name requirement toggle */}
           <div className="win-groupbox">
             <div className="text-xs font-bold mb-2">Authentication Settings</div>
