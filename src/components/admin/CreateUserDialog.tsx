@@ -21,6 +21,7 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
   const [copied, setCopied] = useState(false);
 
   const [fullName, setFullName] = useState("");
+  const [username, setUsername] = useState("");
   const [accessCode, setAccessCode] = useState("");
   const [role, setRole] = useState("staff");
   const [requiresName, setRequiresName] = useState(true);
@@ -35,8 +36,8 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
   };
 
   const copyCredentials = async () => {
-    let text = `Access Code: ${accessCode}`;
-    if (requiresName) {
+    let text = `Username: ${username}\nPassword: ${accessCode}`;
+    if (requiresName && fullName) {
       text = `Name: ${fullName}\n${text}`;
     }
     await navigator.clipboard.writeText(text);
@@ -53,7 +54,7 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!accessCode) return;
+    if (!accessCode || !username) return;
 
     setIsLoading(true);
     try {
@@ -68,6 +69,7 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
           fullName: requiresName ? fullName : "",
           role,
           accessCode,
+          username,
           categoryAccess: allAccess ? [] : selectedCategories,
           allAccess,
         },
@@ -89,6 +91,7 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
 
   const resetForm = () => {
     setFullName("");
+    setUsername("");
     setAccessCode("");
     setRole("staff");
     setRequiresName(true);
@@ -135,9 +138,21 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
               </div>
             )}
 
+            <div className="space-y-1 mb-3">
+              <Label htmlFor="username" className="text-xs">Username:</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="e.g. Martino.I"
+                required
+                className="h-7 text-xs"
+              />
+            </div>
+
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <Label htmlFor="accessCode" className="text-xs">Access Code (Password):</Label>
+                <Label htmlFor="accessCode" className="text-xs">Password:</Label>
                 <button
                   type="button"
                   onClick={generateCode}
@@ -153,10 +168,9 @@ export function CreateUserDialog({ onUserCreated }: CreateUserDialogProps) {
                   type={showPassword ? "text" : "password"}
                   value={accessCode}
                   onChange={(e) => setAccessCode(e.target.value)}
-                  placeholder="e.g. 2002"
+                  placeholder="e.g. RYR4554?"
                   required
                   className="h-7 text-xs pr-8"
-                  minLength={4}
                 />
                 <button
                   type="button"
