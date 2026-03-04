@@ -16,21 +16,21 @@ serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
-    const { accessCode } = await req.json();
+    const { username, password } = await req.json();
 
-    if (!accessCode) {
-      throw new Error("Access code is required");
+    if (!username || !password) {
+      throw new Error("Username and password are required");
     }
 
-    // Look up the profile by access_code
+    // Look up the profile by username
     const { data: profile, error } = await supabaseAdmin
       .from("profiles")
       .select("email, user_id")
-      .eq("access_code", accessCode)
+      .eq("username", username)
       .single();
 
     if (error || !profile) {
-      throw new Error("Invalid access code");
+      throw new Error("Invalid username or password");
     }
 
     return new Response(

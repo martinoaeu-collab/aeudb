@@ -167,6 +167,7 @@ export type Database = {
           full_name: string | null
           id: string
           user_id: string
+          username: string | null
         }
         Insert: {
           access_code?: string | null
@@ -175,6 +176,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           user_id: string
+          username?: string | null
         }
         Update: {
           access_code?: string | null
@@ -183,6 +185,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           user_id?: string
+          username?: string | null
         }
         Relationships: []
       }

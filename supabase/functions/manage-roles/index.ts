@@ -32,7 +32,7 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { action, userId, role, email, password, fullName, accessCode, categoryAccess, allAccess } = body;
+    const { action, userId, role, email, password, fullName, accessCode, categoryAccess, allAccess, username } = body;
 
     const { data: requesterRoles } = await supabaseAdmin
       .from("user_roles")
@@ -119,15 +119,20 @@ serve(async (req) => {
 
       if (createError) throw createError;
 
-      // Wait a moment for trigger to create profile, then update access_code
-      if (newUser.user && accessCode) {
-        // Small delay to let trigger fire
+      // Wait a moment for trigger to create profile, then update access_code and username
+      if (newUser.user) {
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        await supabaseAdmin
-          .from("profiles")
-          .update({ access_code: accessCode })
-          .eq("user_id", newUser.user.id);
+        const updateData: Record<string, string> = {};
+        if (accessCode) updateData.access_code = accessCode;
+        if (username) updateData.username = username;
+        
+        if (Object.keys(updateData).length > 0) {
+          await supabaseAdmin
+            .from("profiles")
+            .update(updateData)
+            .eq("user_id", newUser.user.id);
+        }
       }
 
       // Update role if not staff
