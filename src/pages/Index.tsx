@@ -2,18 +2,16 @@ import { useState, useMemo, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuthContext } from "@/contexts/AuthContext";
 import { useDocuments, useCategories, useDeleteDocument } from "@/hooks/useDocuments";
-import { SearchBar } from "@/components/documents/SearchBar";
-import { CategoryFilter } from "@/components/documents/CategoryFilter";
 import { DocumentListView } from "@/components/documents/DocumentListView";
-import { UploadDialog } from "@/components/documents/UploadDialog";
-import { BarcodeGenerator } from "@/components/documents/BarcodeGenerator";
-import { CreateCategoryDialog } from "@/components/documents/CreateCategoryDialog";
+import { MultiUploadDialog } from "@/components/documents/MultiUploadDialog";
+import { CategorySidebar } from "@/components/documents/CategorySidebar";
 import { EmptyState } from "@/components/documents/EmptyState";
 import { Header } from "@/components/layout/Header";
 import { Document } from "@/types/document";
-import { Loader2, Crown } from "lucide-react";
+import { Loader2, Crown, Upload, Search } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useDebounce } from "@/hooks/useDebounce";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +24,7 @@ const Index = () => {
   const [showBootstrap, setShowBootstrap] = useState(false);
   const [bootstrapping, setBootstrapping] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
-  const [currentIdentifier, setCurrentIdentifier] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [allowedCategoryIds, setAllowedCategoryIds] = useState<string[] | null>(null);
 
   const debouncedSearch = useDebounce(searchQuery, 300);
@@ -35,7 +33,6 @@ const Index = () => {
   const { data: categories = [] } = useCategories();
   const deleteMutation = useDeleteDocument();
 
-  // Fetch user's allowed categories
   useEffect(() => {
     if (user) {
       supabase
@@ -46,7 +43,6 @@ const Index = () => {
           if (data && data.length > 0) {
             setAllowedCategoryIds(data.map(d => d.category_id));
           } else {
-            // No restrictions = all access
             setAllowedCategoryIds(null);
           }
         });
@@ -79,7 +75,7 @@ const Index = () => {
       } else {
         toast.info(data.message);
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to bootstrap admin");
     } finally {
       setBootstrapping(false);
@@ -96,24 +92,22 @@ const Index = () => {
     setDocumentToDelete(null);
   };
 
-  // Filter documents by allowed categories
   const filteredDocuments = useMemo(() => {
-    if (!allowedCategoryIds) return documents; // null = all access
+    if (!allowedCategoryIds) return documents;
     return documents.filter(doc =>
       doc.category_id && allowedCategoryIds.includes(doc.category_id)
     );
   }, [documents, allowedCategoryIds]);
 
-  // Filter categories by allowed
   const filteredCategories = useMemo(() => {
     if (!allowedCategoryIds) return categories;
     return categories.filter(cat => allowedCategoryIds.includes(cat.id));
   }, [categories, allowedCategoryIds]);
 
-  const stats = useMemo(() => ({
-    total: filteredDocuments.length,
-    categories: filteredCategories.length,
-  }), [filteredDocuments.length, filteredCategories.length]);
+  const selectedCategoryName = useMemo(() => {
+    if (!selectedCategory) return "All Documents";
+    return categories.find(c => c.id === selectedCategory)?.name || "Documents";
+  }, [selectedCategory, categories]);
 
   if (authLoading) {
     return (
@@ -125,84 +119,100 @@ const Index = () => {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const handleProceedToUpload = (identifier: string) => {
-    setCurrentIdentifier(identifier);
-    setUploadDialogOpen(true);
-  };
-
   return (
     <div className="min-h-screen bg-background">
-      <Header>
-        {isHrOrAdmin && <BarcodeGenerator onProceedToUpload={handleProceedToUpload} />}
-      </Header>
+      <Header onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-      <UploadDialog
+      <div className="flex">
+        <CategorySidebar
+          categories={filteredCategories}
+          selectedCategory={selectedCategory}
+          onSelectCategory={(id) => { setSelectedCategory(id); setSidebarOpen(false); }}
+          isHrOrAdmin={isHrOrAdmin}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+
+        <main className="flex-1 min-w-0">
+          {showBootstrap && (
+            <div className="mx-4 mt-4">
+              <div className="flex items-center gap-3 p-3 bg-warning/10 border border-warning/30 rounded-lg text-sm">
+                <Crown className="h-4 w-4 text-warning" />
+                <span className="flex-1">No admin exists yet. As the first user, you can become the admin.</span>
+                <Button size="sm" onClick={handleBootstrap} disabled={bootstrapping}>
+                  {bootstrapping && <Loader2 className="h-3 w-3 animate-spin mr-1" />}
+                  Become Admin
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Toolbar */}
+          <div className="px-4 lg:px-6 py-4 border-b border-border">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h1 className="text-lg font-bold text-foreground">{selectedCategoryName}</h1>
+                <p className="text-xs text-muted-foreground">
+                  {filteredDocuments.length} document{filteredDocuments.length !== 1 ? "s" : ""}
+                </p>
+              </div>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search documents..."
+                    className="pl-9 h-9"
+                  />
+                </div>
+                {isHrOrAdmin && (
+                  <Button onClick={() => setUploadDialogOpen(true)} className="h-9 gap-2 shrink-0">
+                    <Upload className="h-4 w-4" />
+                    <span className="hidden sm:inline">Upload</span>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-4 lg:p-6">
+            {documentsLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : filteredDocuments.length === 0 ? (
+              <EmptyState searchQuery={debouncedSearch} />
+            ) : (
+              <DocumentListView
+                documents={filteredDocuments}
+                onDelete={isHrOrAdmin ? setDocumentToDelete : undefined}
+                showActions={isHrOrAdmin}
+              />
+            )}
+          </div>
+        </main>
+      </div>
+
+      <MultiUploadDialog
         categories={categories}
         open={uploadDialogOpen}
         onOpenChange={setUploadDialogOpen}
-        identifier={currentIdentifier}
       />
 
-      {showBootstrap && (
-        <div className="max-w-7xl mx-auto px-4 pt-2">
-          <div className="flex items-center gap-2 p-2 bg-warning/10 border border-warning text-xs">
-            <Crown className="h-4 w-4 text-warning" />
-            <span>No admin exists yet. As the first user, you can become the admin.</span>
-            <Button size="sm" onClick={handleBootstrap} disabled={bootstrapping} className="win-button h-6 text-xs ml-auto">
-              {bootstrapping ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
-              Become Admin
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Search bar */}
-      <div className="max-w-7xl mx-auto px-4 py-2 border-b border-border bg-card">
-        <div className="flex items-center gap-4">
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {stats.total} documents | {stats.categories} categories
-          </span>
-        </div>
-      </div>
-
-      <main className="max-w-7xl mx-auto px-4 py-3">
-        <div className="flex items-center justify-between gap-4 mb-3">
-          <CategoryFilter
-            categories={filteredCategories}
-            selectedCategory={selectedCategory}
-            onSelectCategory={setSelectedCategory}
-          />
-          {isHrOrAdmin && <CreateCategoryDialog />}
-        </div>
-
-        {documentsLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
-        ) : filteredDocuments.length === 0 ? (
-          <EmptyState searchQuery={debouncedSearch} />
-        ) : (
-          <DocumentListView
-            documents={filteredDocuments}
-            onDelete={isHrOrAdmin ? setDocumentToDelete : undefined}
-            showActions={isHrOrAdmin}
-          />
-        )}
-      </main>
-
       <AlertDialog open={!!documentToDelete} onOpenChange={() => setDocumentToDelete(null)}>
-        <AlertDialogContent className="win-dialog" style={{ borderRadius: 0 }}>
+        <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-sm">Delete Document</AlertDialogTitle>
-            <AlertDialogDescription className="text-xs">
+            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+            <AlertDialogDescription>
               Are you sure you want to delete "{documentToDelete?.title}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="win-button h-7 text-xs">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="win-button h-7 text-xs">
-              OK
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
