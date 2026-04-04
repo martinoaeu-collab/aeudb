@@ -2,103 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 @layer base {
   :root {
-    --background: 0 0% 91%;
-    --foreground: 0 0% 10%;
+    --background: 220 14% 96%;
+    --foreground: 220 20% 10%;
 
-    --card: 0 0% 96%;
-    --card-foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
 
-    --popover: 0 0% 96%;
-    --popover-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
 
-    --primary: 212 60% 40%;
+    --primary: 230 80% 56%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 85%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 220 20% 25%;
 
-    --muted: 0 0% 88%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 10% 46%;
 
-    --accent: 0 0% 85%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 230 80% 96%;
+    --accent-foreground: 230 80% 40%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 75%;
-    --input: 0 0% 100%;
-    --ring: 212 60% 40%;
+    --border: 220 13% 90%;
+    --input: 220 13% 90%;
+    --ring: 230 80% 56%;
 
-    --radius: 0px;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 93%;
-    --sidebar-foreground: 0 0% 10%;
-    --sidebar-primary: 212 60% 40%;
+    --sidebar-background: 230 25% 12%;
+    --sidebar-foreground: 220 14% 85%;
+    --sidebar-primary: 230 80% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 85%;
-    --sidebar-accent-foreground: 0 0% 10%;
-    --sidebar-border: 0 0% 75%;
-    --sidebar-ring: 212 60% 40%;
+    --sidebar-accent: 230 25% 18%;
+    --sidebar-accent-foreground: 220 14% 90%;
+    --sidebar-border: 230 20% 20%;
+    --sidebar-ring: 230 80% 56%;
 
-    --success: 120 50% 40%;
+    --success: 152 60% 42%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 80% 50%;
+    --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;
-    --info: 212 60% 40%;
+    --info: 210 80% 52%;
     --info-foreground: 0 0% 100%;
 
-    --chart-1: 212 60% 40%;
-    --chart-2: 120 50% 40%;
-    --chart-3: 38 80% 50%;
-    --chart-4: 0 70% 50%;
-    --chart-5: 270 50% 50%;
+    --chart-1: 230 80% 56%;
+    --chart-2: 152 60% 42%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 0 72% 51%;
+    --chart-5: 270 60% 55%;
 
-    --shadow-2xs: 0 0 0 0 transparent;
-    --shadow-xs: 0 0 0 0 transparent;
-    --shadow-sm: 0 0 0 0 transparent;
-    --shadow-md: 0 0 0 0 transparent;
-    --shadow-lg: 0 0 0 0 transparent;
-    --shadow-xl: 0 0 0 0 transparent;
-    --shadow-2xl: 0 0 0 0 transparent;
+    --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.03);
+    --shadow-xs: 0 1px 3px 0 hsl(0 0% 0% / 0.04);
+    --shadow-sm: 0 2px 6px -1px hsl(0 0% 0% / 0.06);
+    --shadow-md: 0 4px 12px -2px hsl(0 0% 0% / 0.08);
+    --shadow-lg: 0 10px 25px -5px hsl(0 0% 0% / 0.1);
+    --shadow-xl: 0 20px 50px -12px hsl(0 0% 0% / 0.15);
+    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.25);
   }
 
   .dark {
-    --background: 0 0% 20%;
-    --foreground: 0 0% 90%;
+    --background: 230 20% 8%;
+    --foreground: 220 14% 92%;
 
-    --card: 0 0% 25%;
-    --card-foreground: 0 0% 90%;
+    --card: 230 20% 12%;
+    --card-foreground: 220 14% 92%;
 
-    --popover: 0 0% 25%;
-    --popover-foreground: 0 0% 90%;
+    --popover: 230 20% 12%;
+    --popover-foreground: 220 14% 92%;
 
-    --primary: 212 60% 50%;
+    --primary: 230 80% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 30%;
-    --secondary-foreground: 0 0% 90%;
+    --secondary: 230 20% 18%;
+    --secondary-foreground: 220 14% 85%;
 
-    --muted: 0 0% 30%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 230 15% 18%;
+    --muted-foreground: 220 10% 55%;
 
-    --accent: 0 0% 30%;
-    --accent-foreground: 0 0% 90%;
+    --accent: 230 30% 20%;
+    --accent-foreground: 230 80% 70%;
 
-    --destructive: 0 70% 50%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 40%;
-    --input: 0 0% 30%;
-    --ring: 212 60% 50%;
+    --border: 230 15% 22%;
+    --input: 230 15% 22%;
+    --ring: 230 80% 60%;
 
-    --success: 120 50% 45%;
+    --success: 152 60% 48%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 80% 55%;
+    --warning: 38 92% 55%;
     --warning-foreground: 0 0% 0%;
-    --info: 212 60% 50%;
+    --info: 210 80% 55%;
     --info-foreground: 0 0% 100%;
   }
 }
@@ -109,80 +111,14 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 13px;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
+}
 
-  /* Win32 style overrides */
-  button {
-    border-radius: 0 !important;
-  }
-
-  input, select, textarea {
-    border-radius: 0 !important;
-  }
-
-  /* Win32 inset border style for inputs */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="number"],
-  input[type="search"],
-  textarea {
-    border: 1px solid hsl(0 0% 60%);
-    border-top-color: hsl(0 0% 50%);
-    border-left-color: hsl(0 0% 50%);
-    background: hsl(0 0% 100%);
-  }
-
-  /* Win32 raised button style */
-  .win-button {
-    background: hsl(0 0% 91%);
-    border: 1px solid;
-    border-top-color: hsl(0 0% 100%);
-    border-left-color: hsl(0 0% 100%);
-    border-bottom-color: hsl(0 0% 50%);
-    border-right-color: hsl(0 0% 50%);
-    padding: 2px 12px;
-    min-width: 75px;
-    text-align: center;
-    cursor: pointer;
-  }
-
-  .win-button:active {
-    border-top-color: hsl(0 0% 50%);
-    border-left-color: hsl(0 0% 50%);
-    border-bottom-color: hsl(0 0% 100%);
-    border-right-color: hsl(0 0% 100%);
-  }
-
-  /* Group box / fieldset style */
-  .win-groupbox {
-    border: 1px solid hsl(0 0% 75%);
-    padding: 12px;
-    margin: 8px 0;
-  }
-
-  /* Dialog panel */
-  .win-dialog {
-    background: hsl(0 0% 91%);
-    border: 2px solid;
-    border-top-color: hsl(0 0% 100%);
-    border-left-color: hsl(0 0% 100%);
-    border-bottom-color: hsl(0 0% 40%);
-    border-right-color: hsl(0 0% 40%);
-  }
-
-  /* Title bar */
-  .win-titlebar {
-    background: linear-gradient(to right, hsl(212 60% 30%), hsl(212 60% 50%));
-    color: white;
-    padding: 2px 4px;
-    font-weight: 700;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+@layer utilities {
+  .glass {
+    backdrop-filter: blur(12px);
+    background: hsl(var(--card) / 0.8);
   }
 }

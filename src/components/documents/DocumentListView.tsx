@@ -1,7 +1,6 @@
 import { Document } from "@/types/document";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FileText, Download, Trash2, ExternalLink, FileSpreadsheet, FileImage, File } from "lucide-react";
 import { getDocumentDownloadUrl } from "@/hooks/useDocuments";
 import { formatDistanceToNow } from "date-fns";
@@ -22,11 +21,11 @@ function getFileIcon(fileType: string) {
 }
 
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 Bytes";
+  if (bytes === 0) return "0 B";
   const k = 1024;
-  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 }
 
 export function DocumentListView({ documents, onDelete, showActions = true }: DocumentListViewProps) {
@@ -45,99 +44,87 @@ export function DocumentListView({ documents, onDelete, showActions = true }: Do
   };
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden bg-card">
-      <Table>
-        <TableHeader>
-          <TableRow className="bg-muted/50 hover:bg-muted/50">
-            <TableHead className="w-[50px]">Type</TableHead>
-            <TableHead>Name</TableHead>
-            <TableHead className="w-[120px]">Category</TableHead>
-            <TableHead className="w-[100px]">Size</TableHead>
-            <TableHead className="w-[140px]">Modified</TableHead>
-            <TableHead className="w-[120px] text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {documents.map((doc) => (
-            <TableRow key={doc.id} className="group">
-              <TableCell>
-                {getFileIcon(doc.file_type)}
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-3">
-                  <div className="bg-white rounded p-1 border border-border shrink-0">
-                    <Barcode 
-                      value={doc.identifier}
-                      format="CODE128"
-                      width={1}
-                      height={25}
-                      displayValue={true}
-                      fontSize={8}
-                      font="monospace"
-                      textMargin={1}
-                      margin={1}
-                    />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-medium text-foreground truncate" title={doc.title}>
-                      {doc.title}
-                    </span>
-                    <span className="text-xs text-muted-foreground truncate" title={doc.file_name}>
-                      {doc.file_name}
-                    </span>
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell>
+    <div className="grid gap-3 animate-fade-in">
+      {documents.map((doc) => (
+        <div
+          key={doc.id}
+          className="group bg-card border border-border rounded-xl p-4 hover:shadow-md hover:border-primary/20 transition-all duration-200"
+        >
+          <div className="flex items-center gap-4">
+            {/* Icon */}
+            <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+              {getFileIcon(doc.file_type)}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-semibold text-sm text-foreground truncate">{doc.title}</h3>
                 {doc.category && (
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-[10px] shrink-0">
                     {doc.category.name}
                   </Badge>
                 )}
-              </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
-                {formatFileSize(doc.file_size)}
-              </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
-                {formatDistanceToNow(new Date(doc.updated_at), { addSuffix: true })}
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8"
-                    onClick={() => handleOpen(doc)} 
-                    title="Open in new tab"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8"
-                    onClick={() => handleDownload(doc)} 
-                    title="Download"
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  {showActions && onDelete && (
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 hover:text-destructive"
-                      onClick={() => onDelete(doc)} 
-                      title="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                <span>{doc.file_name}</span>
+                <span>·</span>
+                <span>{formatFileSize(doc.file_size)}</span>
+                <span>·</span>
+                <span>{formatDistanceToNow(new Date(doc.updated_at), { addSuffix: true })}</span>
+              </div>
+            </div>
+
+            {/* Barcode */}
+            <div className="hidden md:block shrink-0 bg-card border border-border rounded-lg p-1.5">
+              <Barcode
+                value={doc.identifier}
+                format="CODE128"
+                width={1}
+                height={22}
+                displayValue={true}
+                fontSize={8}
+                font="monospace"
+                textMargin={1}
+                margin={2}
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleOpen(doc)}
+                title="Open"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handleDownload(doc)}
+                title="Download"
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+              {showActions && onDelete && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 hover:text-destructive"
+                  onClick={() => onDelete(doc)}
+                  title="Delete"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
