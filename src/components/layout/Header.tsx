@@ -51,14 +51,24 @@ export function Header({ children, onToggleSidebar }: HeaderProps) {
             Templates
           </Link>
           {role === "admin" && (
-            <Link
-              to="/admin"
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors no-underline ${
-                location.pathname === "/admin" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
-            >
-              Admin
-            </Link>
+            <>
+              <Link
+                to="/central-databank"
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors no-underline ${
+                  location.pathname === "/central-databank" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                Central Databank
+              </Link>
+              <Link
+                to="/admin"
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors no-underline ${
+                  location.pathname === "/admin" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                }`}
+              >
+                Admin
+              </Link>
+            </>
           )}
         </nav>
       </div>

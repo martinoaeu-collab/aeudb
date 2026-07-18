@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import Templates from "./pages/Templates";
 import CreateTemplate from "./pages/CreateTemplate";
 import FillTemplate from "./pages/FillTemplate";
+import CentralDatabank from "./pages/CentralDatabank";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/templates" element={<Templates />} />
             <Route path="/templates/create" element={<CreateTemplate />} />
             <Route path="/templates/:id/fill" element={<FillTemplate />} />
+            <Route path="/central-databank" element={<CentralDatabank />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

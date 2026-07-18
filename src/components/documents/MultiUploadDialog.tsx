@@ -90,12 +90,18 @@ export function MultiUploadDialog({ categories, open, onOpenChange }: MultiUploa
     try {
       for (const entry of files) {
         const identifier = await getNextIdentifier();
-        await uploadMutation.mutateAsync({
+        const uploaded = await uploadMutation.mutateAsync({
           file: entry.file,
           identifier,
           title: entry.title,
           categoryId: entry.categoryId || undefined,
         });
+        // Fire-and-forget: transmit to central databank (server decides if applicable)
+        if (uploaded?.id) {
+          supabase.functions
+            .invoke("sync-to-central", { body: { document_id: uploaded.id } })
+            .catch(() => {});
+        }
       }
       toast.success(`${files.length} document(s) uploaded successfully`);
       setFiles([]);
