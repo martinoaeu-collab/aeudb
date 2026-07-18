@@ -10,6 +10,7 @@ import Admin from "./pages/Admin";
 import Templates from "./pages/Templates";
 import CreateTemplate from "./pages/CreateTemplate";
 import FillTemplate from "./pages/FillTemplate";
+import CentralDatabank from "./pages/CentralDatabank";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
