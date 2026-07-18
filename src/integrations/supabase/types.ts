@@ -35,6 +35,86 @@ export type Database = {
         }
         Relationships: []
       }
+      central_databank_categories: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "central_databank_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: true
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      central_databank_settings: {
+        Row: {
+          api_header_name: string
+          api_header_value: string
+          api_url: string
+          created_at: string
+          enabled: boolean
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          api_header_name?: string
+          api_header_value?: string
+          api_url?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          api_header_name?: string
+          api_header_value?: string
+          api_url?: string
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      central_databank_sync_log: {
+        Row: {
+          created_at: string
+          document_id: string | null
+          id: string
+          message: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          message?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string | null
+          id?: string
+          message?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           category_id: string | null
