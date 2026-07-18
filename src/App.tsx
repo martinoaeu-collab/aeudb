@@ -29,6 +29,7 @@ const App = () => (
             <Route path="/templates" element={<Templates />} />
             <Route path="/templates/create" element={<CreateTemplate />} />
             <Route path="/templates/:id/fill" element={<FillTemplate />} />
+            <Route path="/central-databank" element={<CentralDatabank />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
