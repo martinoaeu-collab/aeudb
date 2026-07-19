@@ -21,6 +21,21 @@ interface Settings {
   enabled: boolean;
 }
 
+const HEADER_NAME_PATTERN = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
+
+function validateSettings(settings: Settings) {
+  const apiUrl = settings.api_url.trim();
+  const headerName = settings.api_header_name.trim();
+
+  if (settings.enabled && !apiUrl) return "API URL is required when transmission is enabled.";
+  if (apiUrl && !apiUrl.startsWith("https://")) return "API URL must start with https://";
+  if (headerName && !HEADER_NAME_PATTERN.test(headerName)) {
+    return "API header name cannot contain spaces. Use a real header such as X-API-Key.";
+  }
+  if (headerName && !settings.api_header_value) return "API header value is required.";
+  return null;
+}
+
 export default function CentralDatabank() {
   const { user, role, isLoading: authLoading } = useAuthContext();
   const { data: categories = [] } = useCategories();
@@ -56,29 +71,33 @@ export default function CentralDatabank() {
   }, [role]);
 
   const handleSave = async () => {
+    const validationError = validateSettings(settings);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
     setSaving(true);
     try {
+      const cleanSettings = {
+        api_url: settings.api_url.trim(),
+        api_header_name: settings.api_header_name.trim(),
+        api_header_value: settings.api_header_value,
+        enabled: settings.enabled,
+      };
+
       let row = settings;
       if (settings.id) {
         const { error } = await supabase
           .from("central_databank_settings")
-          .update({
-            api_url: settings.api_url,
-            api_header_name: settings.api_header_name,
-            api_header_value: settings.api_header_value,
-            enabled: settings.enabled,
-          })
+          .update(cleanSettings)
           .eq("id", settings.id);
         if (error) throw error;
+        setSettings((s) => ({ ...s, ...cleanSettings }));
       } else {
         const { data, error } = await supabase
           .from("central_databank_settings")
-          .insert({
-            api_url: settings.api_url,
-            api_header_name: settings.api_header_name,
-            api_header_value: settings.api_header_value,
-            enabled: settings.enabled,
-          })
+          .insert(cleanSettings)
           .select()
           .single();
         if (error) throw error;
@@ -102,13 +121,19 @@ export default function CentralDatabank() {
   };
 
   const handleTest = async () => {
+    const validationError = validateSettings(settings);
+    if (validationError) {
+      toast.error(validationError);
+      return;
+    }
+
     setTesting(true);
     try {
       const { data, error } = await supabase.functions.invoke("sync-to-central", {
         body: { test: true },
       });
       if (error) throw error;
-      if (data?.ok) toast.success(`Test OK (HTTP ${data.status})`);
+      if (data?.ok) toast.success(`Real document sent: ${data.document?.barcode || "OK"} (HTTP ${data.status})`);
       else toast.error(`Test failed (HTTP ${data?.status || "?"}): ${data?.response || data?.reason || "no response"}`);
     } catch (e) {
       toast.error("Test failed: " + (e instanceof Error ? e.message : "Unknown"));
@@ -189,6 +214,7 @@ export default function CentralDatabank() {
                     onChange={(e) => setSettings((s) => ({ ...s, api_header_name: e.target.value }))}
                     placeholder="X-API-Key"
                   />
+                <p className="text-xs text-muted-foreground">No spaces. This must be the exact header expected by AEAV/APAY.</p>
                 </div>
                 <div className="space-y-2">
                   <Label>API header value</Label>
